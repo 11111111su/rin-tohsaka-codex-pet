@@ -33,6 +33,12 @@ cp rin-tohsaka/pet.json rin-tohsaka/spritesheet.webp "${CODEX_HOME:-$HOME/.codex
 - `rin-tohsaka/spritesheet.webp`：宠物动画精灵图。
 - `install.ps1`：Windows 安装脚本。
 
+### 悬停查看 Codex 额度（Windows）
+
+安装并显示远坂凛后，双击 `start-usage.cmd`。鼠标停留约 0.35 秒后，会在内置宠物旁显示剩余额度和重置时间。移开鼠标自动隐藏；托盘菜单可刷新或退出，`stop-usage.cmd` 也可退出。
+
+助手通过 Codex 官方本机接口读取额度，保留原宠物的动画、点击和拖动操作。无需额外安装运行库，默认不设置开机启动。详见 [额度助手说明](usage-helper/README.md)。
+
 此仓库为个人角色宠物资源，与角色原作及 OpenAI 无官方关联；角色相关权利归原权利人所有。
 
 ## English
@@ -67,5 +73,11 @@ cp rin-tohsaka/pet.json rin-tohsaka/spritesheet.webp "${CODEX_HOME:-$HOME/.codex
 - `rin-tohsaka/pet.json`: Pet name, description, and v2 sprite sheet path.
 - `rin-tohsaka/spritesheet.webp`: Animated pet sprite sheet.
 - `install.ps1`: Windows installation script.
+
+### Hover to view Codex usage (Windows)
+
+Show Rin in Codex and double-click `start-usage.cmd`. After hovering for about 0.35 seconds, a card beside the built-in pet shows remaining usage and reset times. It hides when the pointer leaves. Use the tray menu to refresh or quit, or run `stop-usage.cmd`.
+
+The helper uses the official local Codex interface and preserves the pet's animations, clicks, and dragging. No additional runtime installation is required, and automatic startup is off by default. See the [usage helper guide](usage-helper/README.md).
 
 This repository contains a personal character pet and is not officially affiliated with the original franchise or OpenAI. Character rights belong to their respective owners.
