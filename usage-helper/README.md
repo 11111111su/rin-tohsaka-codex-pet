@@ -4,6 +4,8 @@
 
 保留 Codex 内置宠物，在鼠标停留约 0.35 秒后显示额度卡片。卡片在拖动过程中持续跟随宠物，松开后校准到角色的实际位置；移开鼠标后自动隐藏。卡片显示当前账户的剩余百分比、重置倒计时和本地时间。
 
+宝石刻度双环分别显示 5 小时和每周额度，采用酒红与灰紫配色、细环刻度和宝石形进度端点。悬停展开时轻微淡入，并遵循 Windows 的动画设置。仅有一个额度窗口时，仪表自动居中。
+
 ### 运行
 
 需要 Windows 10/11、Windows PowerShell 5.1 和已登录 ChatGPT 的 Codex。无需安装 Python、.NET SDK 或第三方库。
@@ -53,6 +55,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\usage-helper\tests.ps1
 ## English
 
 The helper keeps the built-in Codex pet and shows a small usage card after hovering for approximately 0.35 seconds. The card follows throughout a drag, aligns with the actual pet position after release, and hides when the pointer leaves. It shows remaining allowance, reset countdowns, and local reset times.
+
+The jewel gauges use ruby and muted plum accents, fine scale ticks, and gemstone progress markers. The card fades in on hover when Windows animations are enabled. A single available quota window is centered automatically.
 
 Requires Windows 10/11, Windows PowerShell 5.1, and Codex signed in with ChatGPT. No Python, .NET SDK, or external packages are needed.
 

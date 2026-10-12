@@ -28,6 +28,11 @@ Assert-Equal $rows[1].Remaining 100 'lower bound'
 Assert-Equal (Format-ResetTime $null) '重置时间暂不可用' 'unknown reset'
 $now=[DateTimeOffset]::FromUnixTimeSeconds(2000000000)
 Assert-Equal (Format-ResetTime 1999999999 $now) '已到重置时间，等待更新' 'expired reset'
+$compactReset=Get-ResetParts ($now.ToUnixTimeSeconds()+8280) $now
+Assert-Equal $compactReset.Countdown '2 小时 18 分' 'ring reset countdown'
+Assert-Equal ($compactReset.Timestamp.Length -gt 0) $true 'keep local reset timestamp'
+Assert-Equal (Get-ResetParts $null $now).Countdown '重置时间未知' 'unknown ring reset'
+Assert-Equal (Get-ResetParts 1999999999 $now).Countdown '等待更新' 'elapsed ring reset'
 $bounds = '{"byDisplayId":{"first":{"x":100,"y":100,"width":400,"height":320,"mascot":{"left":200,"top":10,"width":80,"height":87}}}}' | ConvertFrom-Json
 $native=[PSCustomObject]@{Left=125;Top=125;Width=500;Height=400;Dpi=120}
 $pet=Get-MascotRect $bounds $native

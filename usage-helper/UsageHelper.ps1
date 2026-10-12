@@ -2,6 +2,7 @@
     [switch]$Once,
     [switch]$Diagnose,
     [switch]$Demo,
+    [ValidateSet('normal','full','unknown','weekly')][string]$DemoCase='normal',
     [string]$PreviewPath,
     [string]$DiagnosticPath,
     [string]$CodexPath,
@@ -57,6 +58,7 @@ if ($Once) {
 }
 
 Add-Type -AssemblyName PresentationFramework,PresentationCore,WindowsBase,System.Windows.Forms,System.Drawing
+Add-Type -Path (Join-Path $PSScriptRoot 'RingGauge.cs') -ReferencedAssemblies System.dll,WindowsBase,PresentationCore,PresentationFramework,System.Xaml
 $mutexName = if ($Demo) { 'Local\RinCodexUsage-Demo-v1' } else { 'Local\RinCodexUsage-v1' }
 $mutex = New-Object Threading.Mutex($false, $mutexName)
 $ownsMutex = $false
@@ -69,29 +71,48 @@ $stopEvent.Reset() | Out-Null
 [xml]$xaml = @'
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="远坂凛 · Codex 余量" Width="272" SizeToContent="Height"
+        Title="远坂凛 · Codex 余量" Width="292" SizeToContent="Height"
         WindowStyle="None" AllowsTransparency="True" Background="Transparent"
         ResizeMode="NoResize" ShowInTaskbar="False" ShowActivated="False" Topmost="True">
-  <Border Background="#FFF9F7F4" BorderBrush="#FFE1D6D3" BorderThickness="1" CornerRadius="14" Padding="17,14">
+  <Border Background="#FF231C24" BorderBrush="#FF443440" BorderThickness="1" CornerRadius="20" Padding="18,19,18,16">
     <StackPanel>
-      <Grid Margin="0,0,0,12">
+      <Grid Margin="0,0,0,18">
         <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-        <TextBlock Text="Codex 余量" FontSize="14" FontWeight="SemiBold" Foreground="#FF332A2C"/>
-        <TextBlock Grid.Column="1" Text="RIN" FontSize="10" FontWeight="Bold" Foreground="#FFAE3244" VerticalAlignment="Center"/>
+        <TextBlock Text="RIN / CODEX" FontSize="11" Foreground="#FFB5A6B0" VerticalAlignment="Center"/>
+        <Path Grid.Column="1" Width="16" Height="16" Stretch="Uniform" Stroke="#FFBA405C" StrokeThickness="1.2" Data="M 1,6 L 5,1 L 11,1 L 15,6 L 8,15 Z M 1,6 L 15,6 M 5,1 L 6,6 L 8,15 M 11,1 L 10,6 L 8,15"/>
       </Grid>
-      <StackPanel x:Name="PrimaryRow" Margin="0,0,0,12">
-        <Grid><TextBlock x:Name="PrimaryLabel" Text="5 小时" FontSize="12" Foreground="#FF66585A"/>
-          <TextBlock x:Name="PrimaryValue" HorizontalAlignment="Right" Text="—" FontSize="14" FontWeight="SemiBold" Foreground="#FF332A2C"/></Grid>
-        <ProgressBar x:Name="PrimaryBar" Height="5" Margin="0,7,0,5" Maximum="100" Value="0" BorderThickness="0" Background="#FFE9E1DF" Foreground="#FFB44153"/>
-        <TextBlock x:Name="PrimaryReset" Text="正在读取额度…" FontSize="10" Foreground="#FF897B7D"/>
-      </StackPanel>
-      <StackPanel x:Name="SecondaryRow" Margin="0,0,0,12">
-        <Grid><TextBlock x:Name="SecondaryLabel" Text="每周" FontSize="12" Foreground="#FF66585A"/>
-          <TextBlock x:Name="SecondaryValue" HorizontalAlignment="Right" Text="—" FontSize="14" FontWeight="SemiBold" Foreground="#FF332A2C"/></Grid>
-        <ProgressBar x:Name="SecondaryBar" Height="5" Margin="0,7,0,5" Maximum="100" Value="0" BorderThickness="0" Background="#FFE9E1DF" Foreground="#FF70627C"/>
-        <TextBlock x:Name="SecondaryReset" Text="正在读取额度…" FontSize="10" Foreground="#FF897B7D"/>
-      </StackPanel>
-      <TextBlock x:Name="Freshness" Text="正在连接 Codex…" FontSize="10" Foreground="#FF897B7D" TextWrapping="Wrap" MaxWidth="236"/>
+      <Grid>
+        <Grid.ColumnDefinitions><ColumnDefinition x:Name="PrimaryColumn"/><ColumnDefinition x:Name="GapColumn" Width="18"/><ColumnDefinition x:Name="SecondaryColumn"/></Grid.ColumnDefinitions>
+        <StackPanel x:Name="PrimaryRow" Grid.Column="0">
+          <Grid Width="112" Height="112" HorizontalAlignment="Center">
+            <ContentControl x:Name="PrimaryGaugeHost"/>
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+              <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><TextBlock x:Name="PrimaryValue" Text="—" FontSize="26" FontWeight="Medium" Foreground="#FFF3E9EE"/><TextBlock x:Name="PrimaryPercent" Text="%" FontSize="11" Foreground="#FFB5A6B0" VerticalAlignment="Bottom" Margin="2,0,0,5" Visibility="Collapsed"/></StackPanel>
+              <TextBlock x:Name="PrimaryState" Text="读取中" FontSize="11" Foreground="#FFB5A6B0" HorizontalAlignment="Center"/>
+            </StackPanel>
+          </Grid>
+          <TextBlock x:Name="PrimaryLabel" Text="5 小时" FontSize="12" Foreground="#FFF3E9EE" HorizontalAlignment="Center" Margin="0,10,0,0"/>
+          <TextBlock x:Name="PrimaryReset" Text="等待更新" FontSize="11" Foreground="#FFB5A6B0" TextAlignment="Center" TextWrapping="Wrap" Margin="0,7,0,0"/>
+          <TextBlock x:Name="PrimaryDate" FontSize="11" Foreground="#FF95838F" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+        </StackPanel>
+        <StackPanel x:Name="SecondaryRow" Grid.Column="2">
+          <Grid Width="112" Height="112" HorizontalAlignment="Center">
+            <ContentControl x:Name="SecondaryGaugeHost"/>
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+              <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><TextBlock x:Name="SecondaryValue" Text="—" FontSize="26" FontWeight="Medium" Foreground="#FFF3E9EE"/><TextBlock x:Name="SecondaryPercent" Text="%" FontSize="11" Foreground="#FFB5A6B0" VerticalAlignment="Bottom" Margin="2,0,0,5" Visibility="Collapsed"/></StackPanel>
+              <TextBlock x:Name="SecondaryState" Text="读取中" FontSize="11" Foreground="#FFB5A6B0" HorizontalAlignment="Center"/>
+            </StackPanel>
+          </Grid>
+          <TextBlock x:Name="SecondaryLabel" Text="每周" FontSize="12" Foreground="#FFF3E9EE" HorizontalAlignment="Center" Margin="0,10,0,0"/>
+          <TextBlock x:Name="SecondaryReset" Text="等待更新" FontSize="11" Foreground="#FFB5A6B0" TextAlignment="Center" TextWrapping="Wrap" Margin="0,7,0,0"/>
+          <TextBlock x:Name="SecondaryDate" FontSize="11" Foreground="#FF95838F" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+        </StackPanel>
+      </Grid>
+      <Grid Margin="0,20,0,0">
+        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions>
+        <TextBlock Text="距离重置" FontSize="11" Foreground="#FFB5A6B0"/>
+        <TextBlock x:Name="Freshness" Grid.Column="1" Text="正在连接 Codex…" FontSize="11" Foreground="#FFB5A6B0" HorizontalAlignment="Right" TextWrapping="Wrap" TextAlignment="Right" MaxWidth="185"/>
+      </Grid>
     </StackPanel>
   </Border>
 </Window>
@@ -99,8 +120,19 @@ $stopEvent.Reset() | Out-Null
 $reader = New-Object Xml.XmlNodeReader $xaml
 $script:card = [Windows.Markup.XamlReader]::Load($reader)
 $script:controls = @{}
-foreach ($name in @('PrimaryRow','PrimaryLabel','PrimaryValue','PrimaryBar','PrimaryReset','SecondaryRow','SecondaryLabel','SecondaryValue','SecondaryBar','SecondaryReset','Freshness')) {
+foreach ($name in @('PrimaryRow','PrimaryColumn','PrimaryLabel','PrimaryValue','PrimaryPercent','PrimaryState','PrimaryGaugeHost','PrimaryReset','PrimaryDate','SecondaryRow','SecondaryColumn','SecondaryLabel','SecondaryValue','SecondaryPercent','SecondaryState','SecondaryGaugeHost','SecondaryReset','SecondaryDate','GapColumn','Freshness')) {
     $script:controls[$name] = $script:card.FindName($name)
+}
+$script:gauges=@{}
+foreach ($prefix in @('Primary','Secondary')) {
+    $gauge=New-Object RinUsage.RingGauge
+    $gauge.Width=112; $gauge.Height=112
+    if ($prefix -eq 'Secondary') {
+        $gauge.ValueBrush=[Windows.Media.BrushConverter]::new().ConvertFromString('#FF9E759A')
+        $gauge.GemColor=[Windows.Media.ColorConverter]::ConvertFromString('#FFB58EB6')
+    }
+    $script:controls[$prefix+'GaugeHost'].Content=$gauge
+    $script:gauges[$prefix]=$gauge
 }
 $script:handle = 0L; $script:rpc = $null; $script:initialized = $false
 $script:requestId = 2; $script:pending = $null; $script:pendingSince = [DateTime]::MinValue
@@ -165,17 +197,25 @@ function Render-Usage {
     foreach ($prefix in @('Primary','Secondary')) {
         $slot = $prefix.ToLowerInvariant()
         $row = $rows | Where-Object Slot -eq $slot | Select-Object -First 1
-        $script:controls[$prefix+'Row'].Visibility = if ($null -ne $script:snapshot -and $null -eq $row) { 'Collapsed' } else { 'Visible' }
+        $visible=$null -eq $script:snapshot -or $null -ne $row
+        $script:controls[$prefix+'Row'].Visibility = if ($visible) { 'Visible' } else { 'Collapsed' }
+        $script:controls[$prefix+'Column'].Width = if ($visible) { New-Object Windows.GridLength(1,[Windows.GridUnitType]::Star) } else { New-Object Windows.GridLength(0) }
         if ($row) {
             $script:controls[$prefix+'Label'].Text = $row.Label
-            $script:controls[$prefix+'Value'].Text = if ($null -eq $row.Remaining) { '暂不可用' } else { '{0:0.#}% 剩余' -f $row.Remaining }
-            $script:controls[$prefix+'Bar'].Value = if ($null -eq $row.Remaining) { 0 } else { $row.Remaining }
-            $script:controls[$prefix+'Bar'].Visibility = if ($null -eq $row.Remaining) { 'Hidden' } else { 'Visible' }
-            $script:controls[$prefix+'Reset'].Text = Format-ResetTime $row.ResetsAt
+            $known=$null -ne $row.Remaining
+            $script:controls[$prefix+'Value'].Text = if ($known) { '{0:0.#}' -f $row.Remaining } else { '—' }
+            $script:controls[$prefix+'Percent'].Visibility = if ($known) { 'Visible' } else { 'Collapsed' }
+            $script:controls[$prefix+'State'].Visibility = if ($known) { 'Collapsed' } else { 'Visible' }
+            $script:controls[$prefix+'State'].Text='暂不可用'
+            $script:gauges[$prefix].Remaining = if ($known) { $row.Remaining } else { [double]::NaN }
+            $reset=Get-ResetParts $row.ResetsAt
+            $script:controls[$prefix+'Reset'].Text = $reset.Countdown
+            $script:controls[$prefix+'Date'].Text = $reset.Timestamp
         }
     }
+    $script:controls.GapColumn.Width=if ($script:controls.PrimaryRow.Visibility -eq 'Visible' -and $script:controls.SecondaryRow.Visibility -eq 'Visible') { New-Object Windows.GridLength(18) } else { New-Object Windows.GridLength(0) }
     $age = ([DateTime]::UtcNow-$script:lastUpdate).TotalSeconds
-    $text = if ($Demo) { '界面预览 · 示例数据' } elseif ($script:status) { $script:status } elseif ($rows.Count -eq 0) { '当前账号未返回套餐额度' } elseif ($age -gt [Math]::Max(90,$RefreshSeconds*2)) { '数据已过期 · 等待刷新' } else { '更新于 {0} · 悬停查看' -f $script:lastUpdate.ToLocalTime().ToString('HH:mm:ss') }
+    $text = if ($Demo) { '示例数据' } elseif ($script:status) { $script:status } elseif ($rows.Count -eq 0) { '当前账号未返回套餐额度' } elseif ($age -gt [Math]::Max(90,$RefreshSeconds*2)) { '数据已过期 · 等待刷新' } else { '更新于 {0}' -f $script:lastUpdate.ToLocalTime().ToString('HH:mm:ss') }
     $script:controls.Freshness.Text = $text
     $script:card.UpdateLayout()
 }
@@ -234,7 +274,15 @@ function Update-Hover {
     } else { $script:hoverSince=$null }
     $show = ($hover -and ($now-$script:hoverSince).TotalMilliseconds -ge 350) -or ($script:card.IsVisible -and ($now-$script:lastHover).TotalMilliseconds -lt 350)
     if (-not $show) { $script:card.Hide(); return }
-    if (-not $script:card.IsVisible) { $script:card.Show(); $script:card.UpdateLayout(); $script:lastPosition='' }
+    if (-not $script:card.IsVisible) {
+        $script:card.Show(); $script:card.UpdateLayout(); $script:lastPosition=''
+        if ([Windows.SystemParameters]::ClientAreaAnimation) {
+            $fade=New-Object Windows.Media.Animation.DoubleAnimation
+            $fade.From=0; $fade.To=1; $fade.Duration=[Windows.Duration]::new([TimeSpan]::FromMilliseconds(140))
+            $fade.FillBehavior=[Windows.Media.Animation.FillBehavior]::Stop
+            $script:card.BeginAnimation([Windows.UIElement]::OpacityProperty,$fade)
+        }
+    }
     $source = [Windows.PresentationSource]::FromVisual($script:card)
     $factor = $source.CompositionTarget.TransformToDevice.M11
     $width = [int][Math]::Ceiling($script:card.ActualWidth*$factor)
@@ -291,9 +339,12 @@ try {
     $script:card.Show(); $script:card.UpdateLayout()
     if ($Demo) {
         $script:snapshot = [PSCustomObject]@{rateLimits=[PSCustomObject]@{
-            primary=[PSCustomObject]@{usedPercent=8;windowDurationMins=300;resetsAt=[DateTimeOffset]::Now.AddHours(3).ToUnixTimeSeconds()}
-            secondary=[PSCustomObject]@{usedPercent=25;windowDurationMins=10080;resetsAt=[DateTimeOffset]::Now.AddDays(4).ToUnixTimeSeconds()}
+            primary=[PSCustomObject]@{usedPercent=28;windowDurationMins=300;resetsAt=[DateTimeOffset]::Now.AddMinutes(138).ToUnixTimeSeconds()}
+            secondary=[PSCustomObject]@{usedPercent=52;windowDurationMins=10080;resetsAt=[DateTimeOffset]::Now.AddHours(102).ToUnixTimeSeconds()}
         }}
+        if ($DemoCase -eq 'full') { $script:snapshot.rateLimits.primary.usedPercent=0; $script:snapshot.rateLimits.secondary.usedPercent=100 }
+        if ($DemoCase -eq 'unknown') { $script:snapshot.rateLimits.primary.usedPercent=$null; $script:snapshot.rateLimits.secondary.usedPercent=$null }
+        if ($DemoCase -eq 'weekly') { $script:snapshot.rateLimits.primary=$null }
         $script:card.Left=450; $script:card.Top=220
     } else { $script:card.Hide() }
     Render-Usage; $timer.Start()

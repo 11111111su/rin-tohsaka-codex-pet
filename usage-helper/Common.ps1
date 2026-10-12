@@ -57,6 +57,15 @@ function Format-ResetTime {
     return '{0}后重置 · {1}' -f $countdown, $reset.ToString('MM-dd HH:mm')
 }
 
+function Get-ResetParts {
+    param($UnixSeconds, [DateTimeOffset]$Now=[DateTimeOffset]::Now)
+    if ($null -eq $UnixSeconds) { return [PSCustomObject]@{Countdown='重置时间未知';Timestamp=''} }
+    try { $reset=[DateTimeOffset]::FromUnixTimeSeconds([long]$UnixSeconds).ToLocalTime() } catch { return [PSCustomObject]@{Countdown='重置时间未知';Timestamp=''} }
+    $minutes=[Math]::Ceiling(($reset-$Now).TotalMinutes)
+    $countdown=if ($minutes -le 0) { '等待更新' } elseif ($minutes -ge 1440) { '{0} 天 {1} 小时' -f [Math]::Floor($minutes/1440),[Math]::Floor(($minutes%1440)/60) } elseif ($minutes -ge 60) { '{0} 小时 {1} 分' -f [Math]::Floor($minutes/60),($minutes%60) } else { '{0} 分' -f $minutes }
+    return [PSCustomObject]@{Countdown=$countdown;Timestamp=$reset.ToString('MM-dd HH:mm')}
+}
+
 function Get-MascotRect {
     param($Bounds, $Window)
     if ($null -eq $Bounds -or $null -eq $Window) { return $null }
