@@ -309,8 +309,10 @@ $script:card.Add_SourceInitialized({
     [RinUsage.Desktop]::MakePassive($script:handle)
 })
 $tray = New-Object Windows.Forms.NotifyIcon
-$tray.Icon = [Drawing.SystemIcons]::Information
-$tray.Text = '远坂凛 · Codex 额度助手'
+$trayIcon=New-Object Drawing.Icon((Join-Path $PSScriptRoot 'rin-usage.ico'),[Windows.Forms.SystemInformation]::SmallIconSize)
+$tray.Icon = $trayIcon
+$helperVersion=([IO.File]::ReadAllText((Join-Path $PSScriptRoot 'VERSION'))).Trim()
+$tray.Text = '远坂凛 · Codex 额度助手 v'+$helperVersion
 $menu = New-Object Windows.Forms.ContextMenuStrip
 $refreshItem = $menu.Items.Add('立即刷新')
 $refreshItem.Add_Click({ $script:lastRequest=[DateTime]::MinValue })
@@ -364,7 +366,7 @@ try {
     Render-Usage; $timer.Start()
     [Windows.Threading.Dispatcher]::Run()
 } finally {
-    $timer.Stop(); $tray.Visible=$false; $tray.Dispose(); $menu.Dispose()
+    $timer.Stop(); $tray.Visible=$false; $tray.Dispose(); $trayIcon.Dispose(); $menu.Dispose()
     if ($script:rpc) { $script:rpc.Dispose() }
     if ($ownerProcess) { $ownerProcess.Dispose() }
     $stopEvent.Dispose(); if ($ownsMutex) { $mutex.ReleaseMutex() }; $mutex.Dispose()

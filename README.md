@@ -6,6 +6,14 @@
 
 远坂凛的 Codex v2 宠物资源，包含原始 `pet.json` 和 `spritesheet.webp`。
 
+### 下载与版本
+
+[下载最新正式安装包](https://github.com/11111111su/rin-tohsaka-codex-pet/releases/latest/download/rin-tohsaka-codex-pet.zip) · [发布记录](https://github.com/11111111su/rin-tohsaka-codex-pet/releases/latest) · [更新记录](CHANGELOG.md)
+
+当前版本为 **v1.1.0**，包含宝石双环、宠物自动联动和宝石托盘图标。将鼠标放在托盘图标上可查看助手版本号；解压包中的 `usage-helper/VERSION` 也记录了版本。两台电脑需要分别安装或更新助手。
+
+已有宠物的电脑：解压最新版安装包，双击 `enable-auto-usage.cmd` 更新助手。首次安装请先按下面步骤安装宠物，再启用联动。`main` 是稳定版本；功能分支用于开发，日常下载请使用上面的正式安装包。
+
 ### Windows 安装
 
 下载本仓库 ZIP 并解压，打开解压目录的 PowerShell，执行：
@@ -46,6 +54,12 @@ cp rin-tohsaka/pet.json rin-tohsaka/spritesheet.webp "${CODEX_HOME:-$HOME/.codex
 # Rin Tohsaka · Local Codex Pet
 
 A v2 Codex pet featuring Rin Tohsaka, including the original `pet.json` and `spritesheet.webp` assets.
+
+### Download and version
+
+[Latest release ZIP](https://github.com/11111111su/rin-tohsaka-codex-pet/releases/latest/download/rin-tohsaka-codex-pet.zip) · [Release details](https://github.com/11111111su/rin-tohsaka-codex-pet/releases/latest) · [Changelog](CHANGELOG.md)
+
+**v1.1.0** includes jewel gauges, automatic synchronization, and the ruby tray icon. Hover over the tray icon to check the installed helper version, or read `usage-helper/VERSION` in the package. Install or update each computer separately. With the pet already installed, extract the latest ZIP and run `enable-auto-usage.cmd` to update the helper. For a new installation, install the pet below first. `main` contains the stable version; use the release ZIP for normal downloads.
 
 ### Windows installation
 

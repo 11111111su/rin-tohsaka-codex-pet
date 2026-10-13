@@ -6,6 +6,8 @@
 
 宝石刻度双环分别显示 5 小时和每周额度，采用酒红与灰紫配色、细环刻度和宝石形进度端点。悬停展开时轻微淡入，并遵循 Windows 的动画设置。仅有一个额度窗口时，仪表自动居中。
 
+托盘使用酒红宝石图标，并提供多种像素尺寸适配 Windows 缩放。鼠标停在托盘图标上，可查看安装的助手版本号。版本记录在 `VERSION` 中；图标源代码为 `TrayIconArtwork.cs`，开发时可用 `build-icon.ps1` 重新生成 `rin-usage.ico`。
+
 ### 运行
 
 需要 Windows 10/11、Windows PowerShell 5.1 和已登录 ChatGPT 的 Codex。无需安装 Python、.NET SDK 或第三方库。
@@ -61,6 +63,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\usage-helper\tests.ps1
 The helper keeps the built-in Codex pet and shows a small usage card after hovering for approximately 0.35 seconds. The card follows throughout a drag, aligns with the actual pet position after release, and hides when the pointer leaves. It shows remaining allowance, reset countdowns, and local reset times.
 
 The jewel gauges use ruby and muted plum accents, fine scale ticks, and gemstone progress markers. The card fades in on hover when Windows animations are enabled. A single available quota window is centered automatically.
+
+The ruby tray icon provides multiple pixel sizes for Windows scaling, and its tooltip identifies the installed version from `VERSION`. `TrayIconArtwork.cs` contains the artwork source; developers can regenerate `rin-usage.ico` using `build-icon.ps1`.
 
 Requires Windows 10/11, Windows PowerShell 5.1, and Codex signed in with ChatGPT. No Python, .NET SDK, or external packages are needed.
 
