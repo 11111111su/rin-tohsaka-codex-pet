@@ -69,7 +69,7 @@ namespace RinUsage {
         [DllImport("user32.dll")] private static extern short GetAsyncKeyState(int key);
         [DllImport("user32.dll")] private static extern bool SetWindowPos(IntPtr window, IntPtr after, int x, int y, int width, int height, uint flags);
         [DllImport("dwmapi.dll")] private static extern int DwmGetWindowAttribute(IntPtr window, int attribute, out int value, int size);
-        private static IntPtr cached; private static DateTime nextScan;
+        private static IntPtr cached; private static uint cachedPid; private static DateTime nextScan;
         public static void EnableDpiAwareness() { try { SetThreadDpiAwarenessContext(new IntPtr(-4)); } catch { } }
         public static bool LeftButtonDown { get { return (GetAsyncKeyState(1) & 0x8000) != 0; } }
         public static void MakePassive(long handle) {
@@ -112,7 +112,12 @@ namespace RinUsage {
                 WorkLeft=m.Work.Left, WorkTop=m.Work.Top, WorkRight=m.Work.Right, WorkBottom=m.Work.Bottom };
         }
         public static PetWindow FindPet() {
-            if (cached != IntPtr.Zero) { var pet = Read(cached); if (pet != null) return pet; cached = IntPtr.Zero; }
+            if (cached != IntPtr.Zero) {
+                uint pid; GetWindowThreadProcessId(cached, out pid);
+                var pet = pid == cachedPid ? Read(cached) : null;
+                if (pet != null) return pet;
+                cached = IntPtr.Zero;
+            }
             if (DateTime.UtcNow < nextScan) return null;
             nextScan = DateTime.UtcNow.AddSeconds(1);
             var pids = new HashSet<uint>();
@@ -130,7 +135,9 @@ namespace RinUsage {
                 if (score > bestScore) { bestScore = score; best = h; }
                 return true;
             }, IntPtr.Zero);
-            cached = best; return best != IntPtr.Zero ? Read(best) : null;
+            cached = best;
+            if (best != IntPtr.Zero) { GetWindowThreadProcessId(best, out cachedPid); return Read(best); }
+            return null;
         }
         public static PetWindow AccessibleMascot(long handle) {
             try {

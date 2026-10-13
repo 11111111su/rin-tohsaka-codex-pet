@@ -6,11 +6,14 @@
     [string]$PreviewPath,
     [string]$DiagnosticPath,
     [string]$CodexPath,
+    [switch]$FollowPet,
+    [int]$OwnerProcessId,
     [ValidateRange(30,600)][int]$RefreshSeconds=60
 )
 $ErrorActionPreference = 'Stop'
 if ($PreviewPath -and -not $Demo) { throw '-PreviewPath requires -Demo.' }
 . (Join-Path $PSScriptRoot 'Common.ps1')
+. (Join-Path $PSScriptRoot 'Lifecycle.ps1')
 Add-Type -Path (Join-Path $PSScriptRoot 'Native.cs') -ReferencedAssemblies System.dll,System.Core.dll,WindowsBase,UIAutomationClient,UIAutomationTypes
 [RinUsage.Desktop]::EnableDpiAwareness()
 $codexHome = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $HOME '.codex' }
@@ -138,11 +141,13 @@ $script:handle = 0L; $script:rpc = $null; $script:initialized = $false
 $script:requestId = 2; $script:pending = $null; $script:pendingSince = [DateTime]::MinValue
 $script:lastRequest = [DateTime]::MinValue; $script:lastUpdate = [DateTime]::MinValue
 $script:retryAt = [DateTime]::MinValue; $script:snapshot = $null; $script:status = '正在连接 Codex…'
-$script:stateWrite = [DateTime]::MinValue; $script:bounds = $null; $script:petRequested = $false
+$script:stateWrite = [DateTime]::MinValue; $script:bounds = $null; $script:petClosed = $false
 $script:lastStateCheck = [DateTime]::MinValue; $script:hoverSince = $null; $script:lastHover = [DateTime]::MinValue
 $script:lastRender = [DateTime]::MinValue; $script:lastPosition = ''; $script:closing = $false
 $script:lastErrorType = ''; $script:diagnosticPet = $null
 $script:accessiblePet = $null; $script:lastAccessibleCheck = [DateTime]::MinValue
+$script:missingPetSince=$null
+$ownerProcess=if ($OwnerProcessId) { [Diagnostics.Process]::GetProcessById($OwnerProcessId) } else { $null }
 $script:accessibleAnchor = $null
 $script:dragActive=$false; $script:dragOffset=$null
 
@@ -228,15 +233,22 @@ function Read-PetState {
         if ($file.LastWriteTimeUtc -ne $script:stateWrite) {
             $state = Get-Content -LiteralPath $statePath -Raw -Encoding UTF8 | ConvertFrom-Json
             $script:bounds = $state.'electron-avatar-overlay-bounds'
-            $script:petRequested = $state.'electron-avatar-overlay-open' -eq $true
+            $script:petClosed = $state.'electron-avatar-overlay-open' -eq $false
             $script:stateWrite = $file.LastWriteTimeUtc
         }
-    } catch { $script:petRequested = $false; $script:bounds = $null }
+    } catch { $script:petClosed = $false; $script:bounds = $null }
 }
 
 function Update-Hover {
     Read-PetState
-    $native = if ($script:petRequested) { [RinUsage.Desktop]::FindPet() } else { $null }
+    $native = if (-not $script:petClosed) { [RinUsage.Desktop]::FindPet() } else { $null }
+    if ($FollowPet) {
+        if ($native) { $script:missingPetSince=$null }
+        else {
+            if ($null -eq $script:missingPetSince) { $script:missingPetSince=[DateTime]::UtcNow }
+            if (([DateTime]::UtcNow-$script:missingPetSince).TotalSeconds -ge 2) { $script:card.Close(); return }
+        }
+    }
     $pet = Get-MascotRect $script:bounds $native
     if ($native -and -not $pet) {
         if (([DateTime]::UtcNow-$script:lastAccessibleCheck).TotalMilliseconds -ge 400) {
@@ -310,6 +322,8 @@ $timer.Interval = [TimeSpan]::FromMilliseconds(100)
 $timer.Add_Tick({
     try {
         if ($stopEvent.WaitOne(0)) { $script:card.Close(); return }
+        if ($ownerProcess -and $ownerProcess.HasExited) { $script:card.Close(); return }
+        if (-not $Demo -and $FollowPet) { Update-Hover; if ($script:closing) { return } }
         if (-not $Demo) { Update-Usage }
         if (([DateTime]::UtcNow-$script:lastRender).TotalSeconds -ge 1) {
             Render-Usage; $script:lastRender=[DateTime]::UtcNow
@@ -318,7 +332,7 @@ $timer.Add_Tick({
                     ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $DiagnosticPath -Encoding UTF8
             }
         }
-        if (-not $Demo) { Update-Hover }
+        if (-not $Demo -and -not $FollowPet) { Update-Hover }
         if ($PreviewPath) {
             $bitmap=New-Object Windows.Media.Imaging.RenderTargetBitmap([int]$script:card.ActualWidth,[int]$script:card.ActualHeight,96,96,[Windows.Media.PixelFormats]::Pbgra32)
             $bitmap.Render($script:card)
@@ -352,5 +366,6 @@ try {
 } finally {
     $timer.Stop(); $tray.Visible=$false; $tray.Dispose(); $menu.Dispose()
     if ($script:rpc) { $script:rpc.Dispose() }
+    if ($ownerProcess) { $ownerProcess.Dispose() }
     $stopEvent.Dispose(); if ($ownsMutex) { $mutex.ReleaseMutex() }; $mutex.Dispose()
 }

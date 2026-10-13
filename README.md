@@ -35,9 +35,9 @@ cp rin-tohsaka/pet.json rin-tohsaka/spritesheet.webp "${CODEX_HOME:-$HOME/.codex
 
 ### 悬停查看 Codex 额度（Windows）
 
-安装并显示远坂凛后，双击 `start-usage.cmd`。鼠标停留约 0.35 秒后，会在内置宠物旁显示宝石刻度双环、剩余额度和重置时间。卡片随拖动移动，移开鼠标自动隐藏；托盘菜单可刷新或退出，`stop-usage.cmd` 也可退出。
+安装远坂凛后，双击 `enable-auto-usage.cmd` 启用宠物联动。显示宠物时额度助手自动启动；关闭宠物或退出 Codex 后，助手和额度连接自动退出，再次显示宠物会恢复。鼠标停留约 0.35 秒后，会在内置宠物旁显示宝石刻度双环、剩余额度和重置时间。卡片随拖动移动，移开鼠标自动隐藏。
 
-助手通过 Codex 官方本机接口读取额度，保留原宠物的动画、点击和拖动操作。无需额外安装运行库，默认不设置开机启动。详见 [额度助手说明](usage-helper/README.md)。
+联动安装器会安装当前用户的 Windows 登录启动项；后台启动器仅在宠物显示时运行额度助手。`disable-auto-usage.cmd` 可关闭联动，`stop-usage.cmd` 暂停当前登录期间的联动，`start-usage.cmd` 恢复联动或手动启动。助手通过 Codex 官方本机接口读取额度，保留原宠物的动画、点击和拖动操作。无需额外安装运行库。详见 [额度助手说明](usage-helper/README.md)。
 
 此仓库为个人角色宠物资源，与角色原作及 OpenAI 无官方关联；角色相关权利归原权利人所有。
 
@@ -76,8 +76,8 @@ cp rin-tohsaka/pet.json rin-tohsaka/spritesheet.webp "${CODEX_HOME:-$HOME/.codex
 
 ### Hover to view Codex usage (Windows)
 
-Show Rin in Codex and double-click `start-usage.cmd`. After hovering for about 0.35 seconds, jewel gauges beside the built-in pet show remaining usage and reset times. The card follows while dragging and hides when the pointer leaves. Use the tray menu to refresh or quit, or run `stop-usage.cmd`.
+Double-click `enable-auto-usage.cmd` to synchronize the helper with the built-in pet. Showing Rin starts the helper; closing the pet or exiting Codex stops it and its quota connection. Reopening the pet restores the helper. After hovering for about 0.35 seconds, jewel gauges show remaining usage and reset times. The card follows while dragging and hides when the pointer leaves.
 
-The helper uses the official local Codex interface and preserves the pet's animations, clicks, and dragging. No additional runtime installation is required, and automatic startup is off by default. See the [usage helper guide](usage-helper/README.md).
+The synchronization installer adds a current-user Windows sign-in shortcut and keeps an idle launcher available while the pet is closed. Use `disable-auto-usage.cmd` to disable synchronization, `stop-usage.cmd` to pause it for the current sign-in, and `start-usage.cmd` to resume it or launch manually. The helper uses the official local Codex interface and preserves the pet's animations, clicks, and dragging. No additional runtime is required. See the [usage helper guide](usage-helper/README.md).
 
 This repository contains a personal character pet and is not officially affiliated with the original franchise or OpenAI. Character rights belong to their respective owners.

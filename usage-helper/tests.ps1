@@ -1,6 +1,24 @@
 ﻿$ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'Common.ps1')
+. (Join-Path $PSScriptRoot 'Lifecycle.ps1')
 function Assert-Equal($Actual,$Expected,$Name) { if ($Actual -ne $Expected) { throw "$Name expected [$Expected], got [$Actual]" } }
+$session=New-PetSession
+$sessionNow=[DateTime]::UtcNow
+Assert-Equal (Get-PetAction $session $false $false $sessionNow) 'Wait' 'no helper without pet'
+Assert-Equal (Get-PetAction $session $true $false $sessionNow) 'Start' 'pet opens helper'
+Assert-Equal (Get-PetAction $session $true $true $sessionNow) 'Wait' 'one helper per pet'
+Assert-Equal (Get-PetAction $session $false $true $sessionNow) 'Wait' 'brief overlay rebuild grace'
+Assert-Equal (Get-PetAction $session $true $true $sessionNow.AddSeconds(1)) 'Wait' 'recovered window keeps helper'
+Assert-Equal (Get-PetAction $session $false $true $sessionNow.AddSeconds(2)) 'Wait' 'new disappearance starts grace'
+Assert-Equal (Get-PetAction $session $false $true $sessionNow.AddSeconds(4)) 'Stop' 'closing pet stops helper'
+$session.Suppressed=$true
+Assert-Equal (Get-PetAction $session $true $false $sessionNow.AddSeconds(5)) 'Wait' 'tray exit stays stopped'
+[void](Get-PetAction $session $false $false $sessionNow.AddSeconds(6))
+[void](Get-PetAction $session $false $false $sessionNow.AddSeconds(8))
+Assert-Equal (Get-PetAction $session $true $false $sessionNow.AddSeconds(9)) 'Start' 'reopening pet resumes helper'
+$session.RetryAt=$sessionNow.AddSeconds(20)
+Assert-Equal (Get-PetAction $session $true $false $sessionNow.AddSeconds(10)) 'Wait' 'failed launch backs off'
+Assert-Equal (Get-PetAction $session $true $false $sessionNow.AddSeconds(20)) 'Start' 'failed helper can restart'
 $snapshot = '{"rateLimits":{"primary":{"usedPercent":99,"windowDurationMins":300}},"rateLimitsByLimitId":{"codex":{"primary":{"usedPercent":8,"windowDurationMins":300,"resetsAt":2000000000},"secondary":{"usedPercent":25,"windowDurationMins":10080}}}}' | ConvertFrom-Json
 $rows = @(Get-UsageRows $snapshot)
 Assert-Equal $rows.Count 2 'two windows'

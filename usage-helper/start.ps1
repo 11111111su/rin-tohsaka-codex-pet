@@ -1,5 +1,23 @@
 ﻿param([switch]$Demo, [string]$CodexPath)
 $ErrorActionPreference = 'Stop'
+if (-not $Demo) {
+    try {
+        $watcherSignal=[Threading.EventWaitHandle]::OpenExisting('Local\RinCodexUsage-Watcher-Stop-v1')
+        $watcherSignal.Dispose()
+        Write-Output '宠物联动已运行，显示宠物后额度助手会自动启动。'
+        return
+    } catch [Threading.WaitHandleCannotBeOpenedException] { }
+    $startupLink=Join-Path ([Environment]::GetFolderPath('Startup')) 'Rin Codex Usage.lnk'
+    if (Test-Path -LiteralPath $startupLink) {
+        $shell=New-Object -ComObject WScript.Shell
+        try {
+            $shortcut=$shell.CreateShortcut($startupLink)
+            Start-Process -FilePath $shortcut.TargetPath -ArgumentList $shortcut.Arguments -WindowStyle Hidden | Out-Null
+        } finally { [Runtime.InteropServices.Marshal]::FinalReleaseComObject($shell) | Out-Null }
+        Write-Output '已恢复宠物联动。'
+        return
+    }
+}
 $scriptFile = Join-Path $PSScriptRoot 'UsageHelper.ps1'
 $arguments = '-NoProfile -Sta -ExecutionPolicy Bypass -File "{0}"' -f $scriptFile
 if ($Demo) { $arguments += ' -Demo' }

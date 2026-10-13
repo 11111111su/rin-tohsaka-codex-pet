@@ -11,10 +11,14 @@
 需要 Windows 10/11、Windows PowerShell 5.1 和已登录 ChatGPT 的 Codex。无需安装 Python、.NET SDK 或第三方库。
 
 1. 按仓库根目录 README 安装并选择远坂凛，在 Codex 中显示宠物。
-2. 双击根目录 `start-usage.cmd`。
+2. 双击根目录 `enable-auto-usage.cmd`，启用宠物联动和 Windows 登录自动启动。
 3. 将鼠标停在宠物身上查看额度。
 
-右键 Windows 托盘中的信息图标，可以立即刷新或退出。也可双击 `stop-usage.cmd` 退出。启动脚本只启动助手，不设置开机启动，不修改 Codex 安装文件或宠物资源。
+显示宠物后，额度助手自动启动；关闭宠物或退出 Codex，卡片、托盘图标和助手自己的额度连接会在约两秒后退出。再次显示宠物时会自动恢复。窗口重建造成的短暂消失不会触发退出。
+
+自动启动器安装在 `%LOCALAPPDATA%\RinCodexUsage`，并在当前用户的 Windows 启动文件夹创建 `Rin Codex Usage.lnk`。它在后台每半秒检查宠物，宠物关闭时只保留启动器，不运行卡片和额度连接。无需管理员权限。更新后再次运行 `enable-auto-usage.cmd` 会替换助手文件并重新启动联动。
+
+右键 Windows 托盘中的信息图标，可以立即刷新或退出。托盘退出会暂停当前宠物会话，再次关闭并打开宠物后恢复。`stop-usage.cmd` 同时停止启动器和助手，本次登录期间不再自动恢复；`start-usage.cmd` 可恢复联动。`disable-auto-usage.cmd` 会停止联动并删除登录启动项。未启用联动时，`start-usage.cmd` 仍可单独手动启动助手。安装器不修改 Codex 安装文件或宠物资源。
 
 卡片刷新间隔默认 60 秒，同时监听额度更新通知。额度来自账户共享窗口，不能据此准确换算剩余对话次数。额度缺失显示“暂不可用”；刷新失败保留上次数据并显示状态，超过有效期标明数据过期。每周额度独立保留在每周栏，兼容仅有一个额度窗口的账户。
 
@@ -60,7 +64,9 @@ The jewel gauges use ruby and muted plum accents, fine scale ticks, and gemstone
 
 Requires Windows 10/11, Windows PowerShell 5.1, and Codex signed in with ChatGPT. No Python, .NET SDK, or external packages are needed.
 
-Show the pet in Codex, then double-click `start-usage.cmd` in the repository root. Right-click the information icon in the Windows notification area to refresh or quit. `stop-usage.cmd` also stops the helper. Startup registration is not enabled automatically.
+Double-click `enable-auto-usage.cmd` to enable pet synchronization and startup at Windows sign-in. The launcher is installed in `%LOCALAPPDATA%\RinCodexUsage`, with a `Rin Codex Usage.lnk` shortcut in the current user's Startup folder. It checks for the pet every half second. Showing the pet starts the helper; closing the pet or exiting Codex stops the card, notification icon, and helper-owned app-server after about two seconds. The idle launcher remains available for the next pet session, without a card or quota connection. Run the installer again after updating the repository.
+
+Right-click the notification icon to refresh or quit. A tray exit pauses the current pet session until the pet is closed and reopened. `stop-usage.cmd` stops both launcher and helper for this sign-in; `start-usage.cmd` resumes synchronization. `disable-auto-usage.cmd` removes the sign-in shortcut and stops both processes. Without synchronization enabled, `start-usage.cmd` still provides a manual standalone launch. No administrator access is required.
 
 Usage is fetched through the official local app-server `account/rateLimits/read` RPC and its update notifications, with a 60-second polling fallback. The helper does not directly read authentication tokens, cookies, chat content, or Codex logs and does not make model requests. Missing values and stale data are identified explicitly.
 
