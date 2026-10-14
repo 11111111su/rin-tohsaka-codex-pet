@@ -22,6 +22,8 @@
 
 启动器在后台每半秒检查宠物，宠物关闭时只保留启动器，不运行卡片和额度连接。更新后再次运行 `enable-auto-usage.cmd` 会替换助手文件并重新启动联动。
 
+正常运行、重开宠物及自动恢复均使用 GUI 启动程序和 `CreateNoWindow` 启动后台 PowerShell。无需保留一个终端窗口，卡片由托盘菜单或宠物联动管理。`RinUsageLauncher.exe` 是随包提供的启动程序，源码为 `HiddenLauncher.cs`，可用 Windows PowerShell 5.1 执行 `build-launcher.ps1` 编译。
+
 右键 Windows 托盘中的宝石图标，可以立即刷新或退出。托盘退出会暂停当前宠物会话，再次关闭并打开宠物后恢复。`stop-usage.cmd` 同时停止启动器和助手，并暂停 Windows 自动恢复；`start-usage.cmd` 可恢复联动。`disable-auto-usage.cmd` 会停止联动并删除 Windows 启动任务。未启用联动时，`start-usage.cmd` 仍可单独手动启动助手。安装器不修改 Codex 安装文件或宠物资源。
 
 卡片刷新间隔默认 60 秒，同时监听额度更新通知。额度来自账户共享窗口，不能据此准确换算剩余对话次数。额度缺失显示“暂不可用”；刷新失败保留上次数据并显示状态，超过有效期标明数据过期。每周额度独立保留在每周栏，兼容仅有一个额度窗口的账户。
@@ -74,6 +76,8 @@ The ruby tray icon provides multiple pixel sizes for Windows scaling, and its to
 Requires Windows 10/11, Windows PowerShell 5.1, and Codex signed in with ChatGPT. No Python, .NET SDK, or external packages are needed.
 
 Double-click `enable-auto-usage.cmd` to enable pet synchronization and startup at Windows sign-in. The launcher is installed in the user's `Documents\Codex\RinCodexUsage`, shared with the Windows scheduler. The current-user task `RinCodexUsage-<user SID>` runs with limited privileges, starts at sign-in, and recovers an exited launcher within about one minute. It avoids duplicate launchers and removes the previous startup shortcut during migration. The launcher checks for the pet every half second. Showing the pet starts the helper; closing the pet or exiting Codex stops the card, notification icon, and helper-owned app-server after about two seconds. The idle launcher remains available for the next pet session, without a card or quota connection. Run the installer again after updating the repository.
+
+Normal startup, reopening, and recovery use the GUI executable `RinUsageLauncher.exe` and `CreateNoWindow` for background PowerShell processes. No terminal window needs to remain open. `HiddenLauncher.cs` provides its source; run `build-launcher.ps1` with Windows PowerShell 5.1 to compile it.
 
 Right-click the notification icon to refresh or quit. A tray exit pauses the current pet session until the pet is closed and reopened. `stop-usage.cmd` stops both launcher and helper and pauses automatic recovery; `start-usage.cmd` resumes synchronization. `disable-auto-usage.cmd` removes the scheduled task and stops both processes. Without synchronization enabled, `start-usage.cmd` still provides a manual standalone launch.
 

@@ -40,7 +40,7 @@ try {
                     if ($CodexPath.Contains('"')) { throw 'Invalid Codex path.' }
                     $arguments+=' -CodexPath "{0}"' -f $CodexPath
                 }
-                $child=Start-Process -FilePath (Join-Path $env:WINDIR 'System32\WindowsPowerShell\v1.0\powershell.exe') -ArgumentList $arguments -WindowStyle Hidden -PassThru
+                $child=[RinUsage.HiddenProcess]::Start((Join-Path $env:WINDIR 'System32\WindowsPowerShell\v1.0\powershell.exe'),$arguments)
             } catch { $session.RetryAt=$now.AddSeconds(10) }
         }
     }

@@ -5,8 +5,10 @@ if ($CodexPath -and $CodexPath.Contains('"')) { throw 'Invalid Codex path.' }
 $installRoot=Get-RinInstallRoot
 $startupLink=Join-Path ([Environment]::GetFolderPath('Startup')) 'Rin Codex Usage.lnk'
 & (Join-Path $PSScriptRoot 'stop.ps1') | Out-Null
+$previousTask=Get-RinAutoTask
+if ($previousTask -and $previousTask.State -eq 'Running') { Stop-ScheduledTask -TaskName (Get-RinTaskName) -ErrorAction Stop }
 New-Item -ItemType Directory -Path $installRoot -Force | Out-Null
-$files=@('Common.ps1','Lifecycle.ps1','AutoStart.ps1','Native.cs','RingGauge.cs','rin-usage.ico','VERSION','UsageHelper.ps1','WatchPet.ps1','start.ps1','stop.ps1','disable-auto.ps1')
+$files=@('Common.ps1','Lifecycle.ps1','AutoStart.ps1','Native.cs','RingGauge.cs','RinUsageLauncher.exe','rin-usage.ico','VERSION','UsageHelper.ps1','WatchPet.ps1','start.ps1','stop.ps1','disable-auto.ps1')
 foreach ($file in $files) {
     $source=Join-Path $PSScriptRoot $file
     $target=Join-Path $installRoot $file
@@ -15,7 +17,7 @@ foreach ($file in $files) {
 Register-RinAutoTask $installRoot $CodexPath
 if (Test-Path -LiteralPath $startupLink) { Remove-Item -LiteralPath $startupLink -Force }
 Start-RinAutoTask
-$ready=$false; $deadline=[DateTime]::UtcNow.AddSeconds(15)
+$ready=$false; $deadline=[DateTime]::UtcNow.AddSeconds(30)
 while ([DateTime]::UtcNow -lt $deadline) {
     try {
         $signal=[Threading.EventWaitHandle]::OpenExisting('Local\RinCodexUsage-Watcher-Stop-v1')

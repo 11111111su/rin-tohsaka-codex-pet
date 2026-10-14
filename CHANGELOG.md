@@ -1,5 +1,13 @@
 # 更新记录 / Changelog
 
+## v1.1.2
+
+- 修复宠物重新打开及启动器恢复时弹出 PowerShell 窗口的问题。
+- 使用 GUI 启动程序及 CreateNoWindow 启动后台进程，保留独立任务恢复和宠物联动。
+- 增加正常启动与自动恢复后的控制台窗口检查。
+
+Use a GUI launcher and CreateNoWindow for background startup, including recovery and pet reopening.
+
 ## v1.1.1
 
 - 修复启动器退出后无法恢复：使用 Windows 独立任务在登录时启动，并每分钟检查是否需要恢复。

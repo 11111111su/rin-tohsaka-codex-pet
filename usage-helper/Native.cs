@@ -49,11 +49,33 @@ namespace RinUsage {
         public int WorkLeft, WorkTop, WorkRight, WorkBottom;
         public string ClassName;
     }
+    public static class HiddenProcess {
+        public static Process Start(string executable, string arguments) {
+            return Process.Start(new ProcessStartInfo(executable, arguments) {
+                UseShellExecute = false, CreateNoWindow = true
+            });
+        }
+    }
     public static class Desktop {
         [StructLayout(LayoutKind.Sequential)] private struct Rect { public int Left, Top, Right, Bottom; }
         [StructLayout(LayoutKind.Sequential)] public struct Point { public int X, Y; }
         [StructLayout(LayoutKind.Sequential)] private struct MonitorInfo { public int Size; public Rect Monitor, Work; public int Flags; }
         private delegate bool EnumProc(IntPtr window, IntPtr state);
+        [DllImport("kernel32.dll")] private static extern IntPtr GetConsoleWindow();
+        public static long ConsoleWindowHandle { get { return GetConsoleWindow().ToInt64(); } }
+        public static long[] VisibleConsoleWindows(int[] processIds) {
+            var ids = new HashSet<uint>();
+            foreach (int id in processIds) ids.Add((uint)id);
+            var handles = new List<long>();
+            EnumWindows((h, unused) => {
+                uint pid; GetWindowThreadProcessId(h, out pid);
+                if (!ids.Contains(pid) || !IsWindowVisible(h)) return true;
+                var cls = new StringBuilder(128); GetClassName(h, cls, cls.Capacity);
+                if (cls.ToString() == "ConsoleWindowClass") handles.Add(h.ToInt64());
+                return true;
+            }, IntPtr.Zero);
+            return handles.ToArray();
+        }
         [DllImport("user32.dll")] private static extern bool EnumWindows(EnumProc callback, IntPtr state);
         [DllImport("user32.dll")] private static extern bool GetWindowRect(IntPtr window, out Rect rect);
         [DllImport("user32.dll")] private static extern bool IsWindowVisible(IntPtr window);

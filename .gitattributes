@@ -4,3 +4,4 @@
 *.cmd text eol=crlf
 *.webp binary
 *.ico binary
+*.exe binary

@@ -13,7 +13,7 @@ function Get-RinInstallRoot {
 
 function Register-RinAutoTask {
     param([string]$InstallRoot, [string]$CodexPath)
-    $executable=Join-Path $env:WINDIR 'System32\WindowsPowerShell\v1.0\powershell.exe'
+    $executable=Join-Path $InstallRoot 'RinUsageLauncher.exe'
     # Resolve the current user's data directory in the scheduled process itself.
     # Encoding the command avoids persisting fragile user-profile path quoting.
     $command="& (Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'Codex\RinCodexUsage\WatchPet.ps1')"
@@ -22,7 +22,7 @@ function Register-RinAutoTask {
         $command+=" -CodexPath '"+$CodexPath.Replace("'","''")+"'"
     }
     $encoded=[Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($command))
-    $arguments='-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -EncodedCommand '+$encoded
+    $arguments='-NoProfile -ExecutionPolicy Bypass -EncodedCommand '+$encoded
     $user=[Security.Principal.WindowsIdentity]::GetCurrent().Name
     # All script resources use PSScriptRoot; leave the scheduler's working directory unset.
     $action=New-ScheduledTaskAction -Execute $executable -Argument $arguments
