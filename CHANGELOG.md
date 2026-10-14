@@ -1,5 +1,13 @@
 # 更新记录 / Changelog
 
+## v1.1.1
+
+- 修复启动器退出后无法恢复：使用 Windows 独立任务在登录时启动，并每分钟检查是否需要恢复。
+- 将助手安装到用户的 Documents/Codex/RinCodexUsage，确保 Windows 任务和 Codex 都能访问安装文件。
+- 手动停止同时暂停自动恢复，显式启动可重新启用联动；保留宠物关闭后停止额度助手的行为。
+
+Fix automatic startup and recovery using a current-user scheduled task and a shared Documents installation directory.
+
 ## v1.1.0
 
 - 宝石刻度双环显示 5 小时和每周剩余额度、重置倒计时及时间。

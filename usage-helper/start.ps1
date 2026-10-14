@@ -1,6 +1,12 @@
 ﻿param([switch]$Demo, [string]$CodexPath)
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'AutoStart.ps1')
 if (-not $Demo) {
+    if (Get-RinAutoTask) {
+        Start-RinAutoTask
+        Write-Output '已恢复宠物联动。'
+        return
+    }
     try {
         $watcherSignal=[Threading.EventWaitHandle]::OpenExisting('Local\RinCodexUsage-Watcher-Stop-v1')
         $watcherSignal.Dispose()

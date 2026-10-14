@@ -1,5 +1,7 @@
 ﻿param([switch]$Demo, [switch]$HelperOnly)
 if (-not $Demo -and -not $HelperOnly) {
+    . (Join-Path $PSScriptRoot 'AutoStart.ps1')
+    if (Get-RinAutoTask) { Disable-ScheduledTask -TaskName (Get-RinTaskName) -ErrorAction Stop | Out-Null }
     try {
         $watcherSignal=[Threading.EventWaitHandle]::OpenExisting('Local\RinCodexUsage-Watcher-Stop-v1')
         try { $watcherSignal.Set() | Out-Null } finally { $watcherSignal.Dispose() }

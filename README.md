@@ -10,7 +10,7 @@
 
 [下载最新正式安装包](https://github.com/11111111su/rin-tohsaka-codex-pet/releases/latest/download/rin-tohsaka-codex-pet.zip) · [发布记录](https://github.com/11111111su/rin-tohsaka-codex-pet/releases/latest) · [更新记录](CHANGELOG.md)
 
-当前版本为 **v1.1.0**，包含宝石双环、宠物自动联动和宝石托盘图标。将鼠标放在托盘图标上可查看助手版本号；解压包中的 `usage-helper/VERSION` 也记录了版本。两台电脑需要分别安装或更新助手。
+当前版本为 **v1.1.1**，包含宝石双环、宠物自动联动和宝石托盘图标，并修复自动启动器退出后不恢复的问题。将鼠标放在托盘图标上可查看助手版本号；解压包中的 `usage-helper/VERSION` 也记录了版本。两台电脑需要分别安装或更新助手。
 
 已有宠物的电脑：解压最新版安装包，双击 `enable-auto-usage.cmd` 更新助手。首次安装请先按下面步骤安装宠物，再启用联动。`main` 是稳定版本；功能分支用于开发，日常下载请使用上面的正式安装包。
 
@@ -45,7 +45,7 @@ cp rin-tohsaka/pet.json rin-tohsaka/spritesheet.webp "${CODEX_HOME:-$HOME/.codex
 
 安装远坂凛后，双击 `enable-auto-usage.cmd` 启用宠物联动。显示宠物时额度助手自动启动；关闭宠物或退出 Codex 后，助手和额度连接自动退出，再次显示宠物会恢复。鼠标停留约 0.35 秒后，会在内置宠物旁显示宝石刻度双环、剩余额度和重置时间。卡片随拖动移动，移开鼠标自动隐藏。
 
-联动安装器会安装当前用户的 Windows 登录启动项；后台启动器仅在宠物显示时运行额度助手。`disable-auto-usage.cmd` 可关闭联动，`stop-usage.cmd` 暂停当前登录期间的联动，`start-usage.cmd` 恢复联动或手动启动。助手通过 Codex 官方本机接口读取额度，保留原宠物的动画、点击和拖动操作。无需额外安装运行库。详见 [额度助手说明](usage-helper/README.md)。
+联动安装器会创建当前用户的 Windows 独立启动任务，启动器退出后最多约一分钟自动恢复；后台启动器仅在宠物显示时运行额度助手。`disable-auto-usage.cmd` 可关闭联动，`stop-usage.cmd` 暂停联动及自动恢复，`start-usage.cmd` 恢复联动或手动启动。助手通过 Codex 官方本机接口读取额度，保留原宠物的动画、点击和拖动操作。无需额外安装运行库。详见 [额度助手说明](usage-helper/README.md)。
 
 此仓库为个人角色宠物资源，与角色原作及 OpenAI 无官方关联；角色相关权利归原权利人所有。
 
@@ -59,7 +59,7 @@ A v2 Codex pet featuring Rin Tohsaka, including the original `pet.json` and `spr
 
 [Latest release ZIP](https://github.com/11111111su/rin-tohsaka-codex-pet/releases/latest/download/rin-tohsaka-codex-pet.zip) · [Release details](https://github.com/11111111su/rin-tohsaka-codex-pet/releases/latest) · [Changelog](CHANGELOG.md)
 
-**v1.1.0** includes jewel gauges, automatic synchronization, and the ruby tray icon. Hover over the tray icon to check the installed helper version, or read `usage-helper/VERSION` in the package. Install or update each computer separately. With the pet already installed, extract the latest ZIP and run `enable-auto-usage.cmd` to update the helper. For a new installation, install the pet below first. `main` contains the stable version; use the release ZIP for normal downloads.
+**v1.1.1** includes jewel gauges, automatic synchronization, the ruby tray icon, and recovery after the launcher exits. Hover over the tray icon to check the installed helper version, or read `usage-helper/VERSION` in the package. Install or update each computer separately. With the pet already installed, extract the latest ZIP and run `enable-auto-usage.cmd` to update the helper. For a new installation, install the pet below first. `main` contains the stable version; use the release ZIP for normal downloads.
 
 ### Windows installation
 
@@ -92,6 +92,6 @@ cp rin-tohsaka/pet.json rin-tohsaka/spritesheet.webp "${CODEX_HOME:-$HOME/.codex
 
 Double-click `enable-auto-usage.cmd` to synchronize the helper with the built-in pet. Showing Rin starts the helper; closing the pet or exiting Codex stops it and its quota connection. Reopening the pet restores the helper. After hovering for about 0.35 seconds, jewel gauges show remaining usage and reset times. The card follows while dragging and hides when the pointer leaves.
 
-The synchronization installer adds a current-user Windows sign-in shortcut and keeps an idle launcher available while the pet is closed. Use `disable-auto-usage.cmd` to disable synchronization, `stop-usage.cmd` to pause it for the current sign-in, and `start-usage.cmd` to resume it or launch manually. The helper uses the official local Codex interface and preserves the pet's animations, clicks, and dragging. No additional runtime is required. See the [usage helper guide](usage-helper/README.md).
+The synchronization installer creates an independent current-user Windows scheduled task and recovers an exited launcher within about one minute. An idle launcher remains available while the pet is closed. Use `disable-auto-usage.cmd` to disable synchronization, `stop-usage.cmd` to pause synchronization and recovery, and `start-usage.cmd` to resume it or launch manually. The helper uses the official local Codex interface and preserves the pet's animations, clicks, and dragging. No additional runtime is required. See the [usage helper guide](usage-helper/README.md).
 
 This repository contains a personal character pet and is not officially affiliated with the original franchise or OpenAI. Character rights belong to their respective owners.

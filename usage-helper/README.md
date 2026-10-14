@@ -18,9 +18,11 @@
 
 显示宠物后，额度助手自动启动；关闭宠物或退出 Codex，卡片、托盘图标和助手自己的额度连接会在约两秒后退出。再次显示宠物时会自动恢复。窗口重建造成的短暂消失不会触发退出。
 
-自动启动器安装在 `%LOCALAPPDATA%\RinCodexUsage`，并在当前用户的 Windows 启动文件夹创建 `Rin Codex Usage.lnk`。它在后台每半秒检查宠物，宠物关闭时只保留启动器，不运行卡片和额度连接。无需管理员权限。更新后再次运行 `enable-auto-usage.cmd` 会替换助手文件并重新启动联动。
+自动启动器安装在用户的 `Documents\Codex\RinCodexUsage`，并创建当前用户的 Windows 任务 `RinCodexUsage-<用户 SID>`。任务在用户登录时启动，使用普通用户权限；启动器退出后最多约一分钟恢复，运行期间不会重复启动。文件使用 Windows 系统任务也能访问的目录，避免打包应用的数据目录隔离影响启动。更新时会移除旧版启动快捷方式。
 
-右键 Windows 托盘中的信息图标，可以立即刷新或退出。托盘退出会暂停当前宠物会话，再次关闭并打开宠物后恢复。`stop-usage.cmd` 同时停止启动器和助手，本次登录期间不再自动恢复；`start-usage.cmd` 可恢复联动。`disable-auto-usage.cmd` 会停止联动并删除登录启动项。未启用联动时，`start-usage.cmd` 仍可单独手动启动助手。安装器不修改 Codex 安装文件或宠物资源。
+启动器在后台每半秒检查宠物，宠物关闭时只保留启动器，不运行卡片和额度连接。更新后再次运行 `enable-auto-usage.cmd` 会替换助手文件并重新启动联动。
+
+右键 Windows 托盘中的宝石图标，可以立即刷新或退出。托盘退出会暂停当前宠物会话，再次关闭并打开宠物后恢复。`stop-usage.cmd` 同时停止启动器和助手，并暂停 Windows 自动恢复；`start-usage.cmd` 可恢复联动。`disable-auto-usage.cmd` 会停止联动并删除 Windows 启动任务。未启用联动时，`start-usage.cmd` 仍可单独手动启动助手。安装器不修改 Codex 安装文件或宠物资源。
 
 卡片刷新间隔默认 60 秒，同时监听额度更新通知。额度来自账户共享窗口，不能据此准确换算剩余对话次数。额度缺失显示“暂不可用”；刷新失败保留上次数据并显示状态，超过有效期标明数据过期。每周额度独立保留在每周栏，兼容仅有一个额度窗口的账户。
 
@@ -41,6 +43,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\usage-helper\stop.ps1 -Dem
 
 # 逻辑验证
 powershell -NoProfile -ExecutionPolicy Bypass -File .\usage-helper\tests.ps1
+
+# 已启用联动并显示宠物时，验证独立任务的自动恢复（会短暂结束本助手启动器）
+powershell -NoProfile -ExecutionPolicy Bypass -File .\usage-helper\autostart-tests.ps1
 ```
 
 找不到 Codex 时，可传入 `-CodexPath 'C:\path\to\codex.exe'`。它必须指向真正的 CLI 可执行文件，不是 `.cmd` 启动器。脚本会依次查找 PATH、正在运行的 Codex CLI、本地更新目录和 Windows 应用包。
@@ -68,9 +73,9 @@ The ruby tray icon provides multiple pixel sizes for Windows scaling, and its to
 
 Requires Windows 10/11, Windows PowerShell 5.1, and Codex signed in with ChatGPT. No Python, .NET SDK, or external packages are needed.
 
-Double-click `enable-auto-usage.cmd` to enable pet synchronization and startup at Windows sign-in. The launcher is installed in `%LOCALAPPDATA%\RinCodexUsage`, with a `Rin Codex Usage.lnk` shortcut in the current user's Startup folder. It checks for the pet every half second. Showing the pet starts the helper; closing the pet or exiting Codex stops the card, notification icon, and helper-owned app-server after about two seconds. The idle launcher remains available for the next pet session, without a card or quota connection. Run the installer again after updating the repository.
+Double-click `enable-auto-usage.cmd` to enable pet synchronization and startup at Windows sign-in. The launcher is installed in the user's `Documents\Codex\RinCodexUsage`, shared with the Windows scheduler. The current-user task `RinCodexUsage-<user SID>` runs with limited privileges, starts at sign-in, and recovers an exited launcher within about one minute. It avoids duplicate launchers and removes the previous startup shortcut during migration. The launcher checks for the pet every half second. Showing the pet starts the helper; closing the pet or exiting Codex stops the card, notification icon, and helper-owned app-server after about two seconds. The idle launcher remains available for the next pet session, without a card or quota connection. Run the installer again after updating the repository.
 
-Right-click the notification icon to refresh or quit. A tray exit pauses the current pet session until the pet is closed and reopened. `stop-usage.cmd` stops both launcher and helper for this sign-in; `start-usage.cmd` resumes synchronization. `disable-auto-usage.cmd` removes the sign-in shortcut and stops both processes. Without synchronization enabled, `start-usage.cmd` still provides a manual standalone launch. No administrator access is required.
+Right-click the notification icon to refresh or quit. A tray exit pauses the current pet session until the pet is closed and reopened. `stop-usage.cmd` stops both launcher and helper and pauses automatic recovery; `start-usage.cmd` resumes synchronization. `disable-auto-usage.cmd` removes the scheduled task and stops both processes. Without synchronization enabled, `start-usage.cmd` still provides a manual standalone launch.
 
 Usage is fetched through the official local app-server `account/rateLimits/read` RPC and its update notifications, with a 60-second polling fallback. The helper does not directly read authentication tokens, cookies, chat content, or Codex logs and does not make model requests. Missing values and stale data are identified explicitly.
 
